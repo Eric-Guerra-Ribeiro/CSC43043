@@ -21,27 +21,47 @@ out struct fragment_data
 uniform mat4 model; // Model affine transform matrix associated to the current shape
 uniform mat4 view;  // View matrix (rigid transform) of the camera
 uniform mat4 projection; // Projection (perspective or orthogonal) matrix of the camera
+uniform float time; // Elapsed time
+uniform float frequency; // Frequency of oscillation animation
 
 
 void main()
 {
 
-	// The position of the vertex in the world space
-	vec4 position = model * vec4(vertex_position, 1.0);
+    // The position of the vertex in the world space
+    mat4 M = transpose(
+        mat4(2.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0));
 
-	// The normal of the vertex in the world space
-	mat4 modelNormal = transpose(inverse(model));
-	vec4 normal = modelNormal * vec4(vertex_normal, 0.0);
+    float amplitude = 0.1; // Oscillation amplitude
+    float node_distance = 0.25;
+    float PI = 3.14159265358979;
+    float EPSILON = 1e-12;
 
-	// The projected position of the vertex in the normalized device coordinates:
-	vec4 position_projected = projection * view * position;
+    vec3 oscillation = vec3(0, 0, 0);
 
-	// Fill the parameters sent to the fragment shader
-	fragment.position = position.xyz;
-	fragment.normal   = normal.xyz;
-	fragment.color = vertex_color;
-	fragment.uv = vertex_uv;
+    if (frequency > EPSILON) {
+        oscillation = vec3(amplitude*cos(vertex_position.z/node_distance + frequency*time/(2*PI)), 0, 0);
+    }
 
-	// gl_Position is a built-in variable which is the expected output of the vertex shader
-	gl_Position = position_projected; // gl_Position is the projected vertex position (in normalized device coordinates)
+    vec4 position = model * vec4(vertex_position + oscillation, 1.0);
+    //vec4 position = M * model * vec4(vertex_position, 1.0);
+
+    // The normal of the vertex in the world space
+    mat4 modelNormal = transpose(inverse(model));
+    vec4 normal = modelNormal * vec4(vertex_normal, 0.0);
+
+    // The projected position of the vertex in the normalized device coordinates:
+    vec4 position_projected = projection * view * position;
+
+    // Fill the parameters sent to the fragment shader
+    fragment.position = position.xyz;
+    fragment.normal   = normal.xyz;
+    fragment.color = vertex_color;
+    fragment.uv = vertex_uv;
+
+    // gl_Position is a built-in variable which is the expected output of the vertex shader
+    gl_Position = position_projected; // gl_Position is the projected vertex position (in normalized device coordinates)
 }
