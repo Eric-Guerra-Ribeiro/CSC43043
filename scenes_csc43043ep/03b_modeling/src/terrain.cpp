@@ -7,14 +7,21 @@ using namespace cgp;
 // Evaluate 3D position of the terrain for any (x,y)
 float evaluate_terrain_height(float x, float y)
 {
-    vec2 p_0 = { 0, 0 };
-    float h_0 = 2.0f;
-    float sigma_0 = 3.0f;
 
-    float d = norm(vec2(x, y) - p_0) / sigma_0;
+    int const N_GAUSSIANS = 4;
 
-    float z = h_0 * std::exp(-d * d);
+    std::array<vec2, N_GAUSSIANS> p_i = {vec2{-10,-10}, vec2{5,5}, vec2{-3,4}, vec2{6,4}};
+    std::array<float, N_GAUSSIANS> h_i = {3.0f, -1.5f, 1.0f, 2.0f};
+    std::array<float, N_GAUSSIANS> sigma_i = {10.0f, 3.0f, 4.0f, 4.0f};
 
+    float d;
+    float z = 0;
+
+    for (int i = 0; i < N_GAUSSIANS; ++i) {
+        d = norm(vec2(x, y) - p_i[i]) / sigma_i[i];
+
+        z += h_i[i] * std::exp(-d * d);
+    }
     return z;
 }
 
@@ -67,3 +74,44 @@ mesh create_terrain_mesh(int N, float terrain_length)
     return terrain;
 }
 
+
+bool validate_position(float x, float y, const std::vector<vec3> positions, float min_dist) {
+    if (min_dist < 1.0e-12) {
+        return true;
+    }
+
+    for (auto& position : positions) {
+        if (norm(position - vec3(x, y, position.z)) < min_dist) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+std::vector<vec3> generate_positions_on_terrain(int N, float terrain_length, float min_dist) {
+    std::vector<vec3> positions;
+
+    positions.reserve(N);
+
+    float x;
+    float y;
+
+    int tries = 0;
+    int const MAX_TRIES = 1000;
+
+    for (int i = 0; i < N; ++i) {
+        tries = 0;
+        do {
+            ++tries;
+            x = rand_uniform(-0.5f * terrain_length, 0.5f * terrain_length);
+            y = rand_uniform(-0.5f * terrain_length, 0.5f * terrain_length);
+            if (tries > MAX_TRIES) {
+                throw std::runtime_error("Too hard/impossible to find compatible positions");
+            }
+        } while (!validate_position(x, y, positions, min_dist));
+        positions.emplace_back(x, y, evaluate_terrain_height(x, y));
+    }
+
+    return positions;
+}

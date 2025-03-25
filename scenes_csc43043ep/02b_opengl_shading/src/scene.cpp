@@ -92,8 +92,17 @@ void scene_structure::display_frame()
 
 	// Set additional uniform parameters to the shader
 	environment.uniform_generic.uniform_float["ambiant"] = gui.ambiant;
+	environment.uniform_generic.uniform_float["diffuse"] = gui.diffuse;
+	environment.uniform_generic.uniform_float["specular"] = gui.specular;
+	environment.uniform_generic.uniform_float["shininess"] = gui.shininess;
 	environment.uniform_generic.uniform_vec3["light_color"] = gui.light_color;
 	environment.uniform_generic.uniform_vec3["light_position"] = gui.light_position;
+	environment.uniform_generic.uniform_int["has_fog"] = gui.has_fog;
+	environment.uniform_generic.uniform_float["visibility"] = gui.visibility;
+	environment.uniform_generic.uniform_vec3["fog_color"] = gui.fog_color;
+	environment.uniform_generic.uniform_int["has_attenuation"] = gui.has_attenuation;
+	environment.uniform_generic.uniform_float["light_range"] = gui.light_range;
+
 
 	sphere_light.model.translation = gui.light_position;
 	sphere_light.material.color = gui.light_color * 0.8f;
@@ -137,6 +146,17 @@ void scene_structure::display_gui()
 	ImGui::SliderFloat3("Light position", &gui.light_position[0], -3.0f, 3.0f);
 
 	ImGui::SliderFloat("Ambiant", &gui.ambiant, 0.0f, 1.0f);
+	ImGui::SliderFloat("Diffuse", &gui.diffuse, 0.0f, 1.0f);
+	ImGui::SliderFloat("Specular", &gui.specular, 0.0f, 1.0f);
+	ImGui::SliderFloat("Shininess", &gui.shininess, 0.0f, 256.0f);
+
+	ImGui::Checkbox("Fog", &gui.has_fog);
+	ImGui::SliderFloat("Visibility", &gui.visibility, 0.1f, 20.0f);
+	ImGui::ColorEdit3("Fog color", &gui.fog_color[0]);
+
+	ImGui::Checkbox("Light attenuation", &gui.has_attenuation);
+	ImGui::SliderFloat("Light range", &gui.light_range, 0.1f, 30.0f);
+
 }
 
 void scene_structure::mouse_move_event()

@@ -27,6 +27,23 @@ void scene_structure::initialize()
 	terrain.material.color = { 0.6f,0.85f,0.5f };
 	terrain.material.phong.specular = 0.0f; // non-specular terrain material
 
+	int N_trees = 30;
+	float min_dist_trees = 0.5f;
+
+	mesh const tree_mesh = create_tree();
+	tree.initialize_data_on_gpu(tree_mesh);
+
+	tree_position = generate_positions_on_terrain(N_trees, terrain_length, min_dist_trees);
+
+	int N_mushrooms = 50;
+	float min_dist_mushrooms = 0.1f;
+
+	mesh const mushroom_mesh = create_mushroom();
+	mushroom.initialize_data_on_gpu(mushroom_mesh);
+
+	mushroom_position = generate_positions_on_terrain(N_mushrooms, terrain_length, min_dist_mushrooms);
+
+
 }
 
 
@@ -36,12 +53,23 @@ void scene_structure::display_frame()
 	// Set the light to the current position of the camera
 	environment.light = camera_control.camera_model.position();
 	
-	if (gui.display_frame)
+	if (gui.display_frame) {
 		draw(global_frame, environment);
+	}
 
 	draw(terrain, environment);
-	if (gui.display_wireframe)
+	for (auto& position : tree_position) {
+		tree.model.translation = position;
+		draw(tree, environment);
+	}
+	for (auto& position : mushroom_position) {
+		mushroom.model.translation = position;
+		draw(mushroom, environment);
+	}
+	if (gui.display_wireframe) {
 		draw_wireframe(terrain, environment);
+		draw_wireframe(tree, environment);
+	}
 
 }
 

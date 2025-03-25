@@ -15,11 +15,19 @@ using cgp::timer_basic;
 struct gui_parameters {
 	bool display_frame = false;
 	bool display_wireframe = false;
+	bool has_fog = false;
+	bool has_attenuation = true;
 
 	vec3 light_color = { 1,1,1 };
 	vec3 light_position = { -2, 2, 2 };
+	vec3 fog_color = { 0.5, 0.5, 0.5 };
 
-	float ambiant = 1.0f;
+	float ambiant = 0.3f;
+	float diffuse = 0.8f;
+	float specular = 1.0f;
+	float shininess = 128.0f;
+	float visibility = 10.0f;
+	float light_range = 15.0f;
 };
 
 // The structure of the custom scene
